@@ -1,0 +1,7 @@
+{
+  "name": "estetica-importer",
+  "version": "0.0.1",
+  "dependencies": {
+    "pg-promise": "^5.5.2"
+  }
+}
