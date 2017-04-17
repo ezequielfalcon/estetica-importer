@@ -8,6 +8,18 @@ module.exports = function(db, pgp) {
     module.pacientes = pacientes;
     module.medicos = medicos;
     module.os = os;
+    module.turnos = turnos;
+
+    function turnos(lineaTurnos){
+        var fechaHoyString = new Date(fechaHoy());
+        var fechaTurno = new Date(lineaTurnos[1]);
+        if (fechaTurno > fechaHoyString){
+            var horaTurno = lineaTurnos[0];
+            var idMedicoValor = idMedico();
+            var comentario = lineaTurnos[3];
+            var consultorio = lineaTurnos[6];
+        }
+    }
 
     function os(lineaPaciente){
         var os = lineaPaciente[7]|| "SIN OS";
@@ -119,6 +131,47 @@ module.exports = function(db, pgp) {
             osUpper = "SIN OS";
         }
         return osUpper;
+    }
+
+    function idMedico(nombre){
+        switch (nombre.trim()){
+            case 'Dra. Navajas Silvia':
+                return 1;
+            case 'Dra. Bourimborde Victoria':
+                return 2;
+            case 'Dra. Arena Gabriela':
+                return 3;
+            case 'Dra. Lera Graciela':
+                return 4;
+            case 'Dra. Gomez P. Carlota':
+                return 5;
+            case 'Dra. Risi Yanina':
+                return 6;
+            case 'Dr. Cremona Alberto Ruben':
+                return 7;
+            case 'Dr. Caputti Gustavo':
+                return 8;
+            case 'Baby':
+                return 9;
+            case 'Dra. Escalante Carolina':
+                return 10;
+            case 'Dra. Adriana Zabala':
+                return 11;
+            case 'Dra. Saizar Karina':
+                return 12;
+            case 'Dra. Gimena Longar':
+                return 13;
+            default:
+                return 0;
+        }
+
+    }
+
+    function fechaHoy(){
+        var fechaObject = new Date();
+        var mesString = (fechaObject.getMonth() + 1) < 10 ? "0" + (fechaObject.getMonth() +1).toString() : (fechaObject.getMonth() + 1).toString();
+        var diaString = fechaObject.getDate() < 10 ? "0" + fechaObject.getDate().toString() : fechaObject.getDate().toString();
+        return fechaObject.getFullYear() + "-" + mesString + "-" + diaString;
     }
 
     return module;

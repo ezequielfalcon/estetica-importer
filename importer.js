@@ -32,6 +32,9 @@ if (archivo && tipoImport){
             case 'os':
                 modulos.os(campos);
                 break;
+            case 'turnos':
+                modulos.turnos(campos);
+                break;
         }
 
     }
