@@ -13,11 +13,33 @@ module.exports = function(db, pgp) {
     function turnos(lineaTurnos){
         var fechaHoyString = new Date(fechaHoy());
         var fechaTurno = new Date(lineaTurnos[1]);
-        if (fechaTurno > fechaHoyString){
+        if (fechaTurno > fechaHoyString && !isNaN(lineaTurnos[4])){
             var horaTurno = lineaTurnos[0];
-            var idMedicoValor = idMedico();
-            var comentario = lineaTurnos[3];
+            var fechaTurnoFinal = lineaTurnos[1].substr(0, 8);
+            var idMedicoValor = idMedico(lineaTurnos[2]);
+            var comentario = lineaTurnos[3] || "";
             var consultorio = lineaTurnos[6];
+            var paciente = lineaTurnos[7] || "";
+            var entreturno = lineaTurnos[9] || false;
+            var costo = lineaTurnos[14] || 0;
+            if (isNaN(costo)) costo = 0;
+            db.func('agenda_importar_turno', [idMedicoValor, paciente, horaTurno, consultorio,
+                entreturno, costo, comentario, fechaTurnoFinal], qrm.one)
+                .then(function (data){
+                    if (data.agenda_importar_turno === 'error-paciente'){
+                        console.log("Paciente: " + lineaTurnos[4]);
+                    }
+                    else if (data.agenda_importar_turno === 'error-medico'){
+                        console.log("Medico: " + lineaTurnos[4]);
+                    }
+                    else if (data.agenda_importar_turno === 'error-horario'){
+                        console.log("Horario: " + lineaTurnos[4]);
+                    }
+                })
+                .catch(function (err){
+                    console.log(err);
+                    console.log(fechaTurnoFinal)
+                })
         }
     }
 
@@ -136,31 +158,31 @@ module.exports = function(db, pgp) {
     function idMedico(nombre){
         switch (nombre.trim()){
             case 'Dra. Navajas Silvia':
-                return 1;
-            case 'Dra. Bourimborde Victoria':
-                return 2;
-            case 'Dra. Arena Gabriela':
-                return 3;
-            case 'Dra. Lera Graciela':
-                return 4;
-            case 'Dra. Gomez P. Carlota':
-                return 5;
-            case 'Dra. Risi Yanina':
                 return 6;
-            case 'Dr. Cremona Alberto Ruben':
+            case 'Dra. Bourimborde Victoria':
                 return 7;
-            case 'Dr. Caputti Gustavo':
+            case 'Dra. Arena Gabriela':
                 return 8;
-            case 'Baby':
+            case 'Dra. Lera Graciela':
                 return 9;
-            case 'Dra. Escalante Carolina':
+            case 'Dra. Gomez P. Carlota':
                 return 10;
-            case 'Dra. Adriana Zabala':
+            case 'Dra. Risi Yanina':
                 return 11;
-            case 'Dra. Saizar Karina':
+            case 'Dr. Cremona Alberto Ruben':
                 return 12;
-            case 'Dra. Gimena Longar':
+            case 'Dr. Caputti Gustavo':
                 return 13;
+            case 'Baby':
+                return 14;
+            case 'Dra. Escalante Carolina':
+                return 15;
+            case 'Dra. Adriana Zabala':
+                return 16;
+            case 'Dra. Saizar Karina':
+                return 17;
+            case 'Dra. Gimena Longar':
+                return 18;
             default:
                 return 0;
         }
@@ -169,6 +191,12 @@ module.exports = function(db, pgp) {
 
     function fechaHoy(){
         var fechaObject = new Date();
+        var mesString = (fechaObject.getMonth() + 1) < 10 ? "0" + (fechaObject.getMonth() +1).toString() : (fechaObject.getMonth() + 1).toString();
+        var diaString = fechaObject.getDate() < 10 ? "0" + fechaObject.getDate().toString() : fechaObject.getDate().toString();
+        return fechaObject.getFullYear() + "-" + mesString + "-" + diaString;
+    }
+
+    function fechaString(fechaObject){
         var mesString = (fechaObject.getMonth() + 1) < 10 ? "0" + (fechaObject.getMonth() +1).toString() : (fechaObject.getMonth() + 1).toString();
         var diaString = fechaObject.getDate() < 10 ? "0" + fechaObject.getDate().toString() : fechaObject.getDate().toString();
         return fechaObject.getFullYear() + "-" + mesString + "-" + diaString;

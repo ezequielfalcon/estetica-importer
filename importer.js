@@ -6,7 +6,7 @@ var pgp = require("pg-promise")();
 var cn = {
     host: 'localhost',
     port: 5432,
-    database: 'estetica2',
+    database: 'estetica',
     user: 'eze',
     password: 'Narrowamof14!'
 };
