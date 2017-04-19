@@ -10,37 +10,90 @@ module.exports = function(db, pgp) {
     module.os = os;
     module.turnos = turnos;
 
-    function turnos(lineaTurnos){
-        var fechaHoyString = new Date(fechaHoy());
-        var fechaTurno = new Date(lineaTurnos[1]);
-        if (fechaTurno > fechaHoyString && !isNaN(lineaTurnos[4])){
-            var horaTurno = lineaTurnos[0];
-            var fechaTurnoFinal = lineaTurnos[1].substr(0, 8);
-            var idMedicoValor = idMedico(lineaTurnos[2]);
-            var comentario = lineaTurnos[3] || "";
-            var consultorio = lineaTurnos[6];
-            var paciente = lineaTurnos[7] || "";
-            var entreturno = lineaTurnos[9] || false;
-            var costo = lineaTurnos[14] || 0;
-            if (isNaN(costo)) costo = 0;
-            db.func('agenda_importar_turno', [idMedicoValor, paciente, horaTurno, consultorio,
-                entreturno, costo, comentario, fechaTurnoFinal], qrm.one)
-                .then(function (data){
-                    if (data.agenda_importar_turno === 'error-paciente'){
-                        console.log("Paciente: " + lineaTurnos[4]);
-                    }
-                    else if (data.agenda_importar_turno === 'error-medico'){
-                        console.log("Medico: " + lineaTurnos[4]);
-                    }
-                    else if (data.agenda_importar_turno === 'error-horario'){
-                        console.log("Horario: " + lineaTurnos[4]);
-                    }
-                })
-                .catch(function (err){
-                    console.log(err);
-                    console.log(fechaTurnoFinal)
-                })
+    function turnos(lineaTurnos, segunda){
+        var horaTurno = lineaTurnos[0];
+        if (horaTurno === '*') return;
+        if (!(lineaTurnos[1].indexOf('2017') > -1)) return;
+        var segmentosFecha = lineaTurnos[1].split('/');
+        var dia = segmentosFecha[0];
+        var mes = segmentosFecha[1];
+        var ano = segmentosFecha[2];
+        if (ano !== '2017') return;
+        if (mes < 4) return;
+        if (mes === 4 && dia < 20) return;
+        var idMedicoValor = idMedico(lineaTurnos[2]);
+        var comentario = lineaTurnos[3] || "";
+        var consultorio = lineaTurnos[6];
+        var paciente = lineaTurnos[7] || "";
+        var entreturno = lineaTurnos[9] === 'S';
+        var costo = lineaTurnos[14] || 0;
+        if (isNaN(costo)) costo = 0;
+        db.func('agenda_importar_turno', [idMedicoValor, paciente, horaTurno, consultorio,
+            entreturno, costo, comentario, lineaTurnos[1]], qrm.one)
+            .then(function (data){
+                if (data.agenda_importar_turno === 'error-paciente'){
+                    if (!segunda) pacienteDeTurno(lineaTurnos);
+                }
+                else if (data.agenda_importar_turno === 'error-medico'){
+                    console.log("Medico: " + lineaTurnos[4]);
+                }
+                else if (data.agenda_importar_turno === 'error-horario'){
+                    console.log("Horario: " + lineaTurnos[4]);
+                }
+            })
+            .catch(function (err){
+                console.log(err);
+                console.log(fechaTurnoFinal)
+            })
+    }
+
+    function pacienteDeTurno(lineaTurnos){
+        var dni = lineaTurnos[4];
+        if (!lineaTurnos[7] || lineaTurnos[7] === '') return;
+        var nombreSegmentos = lineaTurnos[7].split(' ');
+        var apellido = nombreSegmentos[0] || '';
+        var nombre = nombreSegmentos [1] || '';
+        if (nombreSegmentos[2]) nombre = nombre + ' ' + nombreSegmentos[2];
+        var fechaNac = "1901-01-01";
+        var sexoActual = "";
+        var sexoFinal;
+        switch (sexoActual){
+            case 'Masculino':
+                sexoFinal = 'M';
+                break;
+            case 'Femenino':
+                sexoFinal = 'F';
+                break;
+            default:
+                sexoFinal = 'N';
+                break;
         }
+        var domicilio = "";
+        var telefono = lineaTurnos[13] || lineaTurnos[11] || "";
+        var os = "SIN OS";
+        var num_os = "";
+        var fechaAlta = fechaHoy();
+        var mail = "";
+        var observaciones = "Alta automática";
+        db.func("paciente_crear_v2", [nombre.trim(), apellido.trim(), dni, fechaNac, telefono, mail, sexoFinal, os, num_os, domicilio, observaciones, fechaAlta], qrm.one)
+            .then(function (data){
+                if (data.paciente_crear_v2 === 'error-paciente'){
+                    console.log("Línea con error: " + dni);
+                    console.log(nombre + " " + apellido);
+                }
+                else if (data.paciente_crear_v2 === 'error-os'){
+                    console.log("error OS!!!!!")
+                }
+                else if (data.paciente_crear_v2 === 'ok'){
+                    turnos(lineaTurnos, true);
+                }
+            })
+            .catch(function(err){
+                console.log("Línea con error: " + idAux);
+                console.log(nombre + " " + apellido);
+                console.log(err);
+            })
+
     }
 
     function os(lineaPaciente){
@@ -91,7 +144,6 @@ module.exports = function(db, pgp) {
             .then(function (data){
                 if (data.paciente_crear_v2 === 'error-paciente'){
                     console.log("Línea con error: " + idAux);
-                    console.log(nombre + " " + apellido);
                 }
                 else if (data.paciente_crear_v2 === 'error-os'){
                     console.log("error OS!!!!!")

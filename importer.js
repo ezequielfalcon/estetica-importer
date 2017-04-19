@@ -6,9 +6,9 @@ var pgp = require("pg-promise")();
 var cn = {
     host: 'localhost',
     port: 5432,
-    database: 'estetica',
-    user: 'eze',
-    password: 'Narrowamof14!'
+    database: 'estetica2',
+    user: 'falco',
+    password: '0h*WR*ms'
 };
 var db = pgp(cn);
 
@@ -33,7 +33,7 @@ if (archivo && tipoImport){
                 modulos.os(campos);
                 break;
             case 'turnos':
-                modulos.turnos(campos);
+                modulos.turnos(campos, false);
                 break;
         }
 
