@@ -13,14 +13,10 @@ module.exports = function(db, pgp) {
     function turnos(lineaTurnos, segunda){
         var horaTurno = lineaTurnos[0];
         if (horaTurno === '*') return;
-        if (!(lineaTurnos[1].indexOf('2017') > -1)) return;
-        var segmentosFecha = lineaTurnos[1].split('/');
-        var dia = segmentosFecha[0];
-        var mes = segmentosFecha[1];
-        var ano = segmentosFecha[2];
-        if (ano !== '2017') return;
+        if (!(lineaTurnos[1].indexOf('/17') > -1)) return;
+        var mes = lineaTurnos[1].substr(0,8).split('/')[1];
+        if (isNaN(mes)) return;
         if (mes < 4) return;
-        if (mes === 4 && dia < 20) return;
         var idMedicoValor = idMedico(lineaTurnos[2]);
         var comentario = lineaTurnos[3] || "";
         var consultorio = lineaTurnos[6];
@@ -29,7 +25,7 @@ module.exports = function(db, pgp) {
         var costo = lineaTurnos[14] || 0;
         if (isNaN(costo)) costo = 0;
         db.func('agenda_importar_turno', [idMedicoValor, paciente, horaTurno, consultorio,
-            entreturno, costo, comentario, lineaTurnos[1]], qrm.one)
+            entreturno, costo, comentario, lineaTurnos[1].substr(0,8)], qrm.one)
             .then(function (data){
                 if (data.agenda_importar_turno === 'error-paciente'){
                     if (!segunda) pacienteDeTurno(lineaTurnos);

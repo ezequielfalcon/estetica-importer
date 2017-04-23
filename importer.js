@@ -6,7 +6,7 @@ var pgp = require("pg-promise")();
 var cn = {
     host: 'localhost',
     port: 5432,
-    database: 'estetica2',
+    database: 'estetica',
     user: 'falco',
     password: '0h*WR*ms'
 };
@@ -18,7 +18,7 @@ var archivo = process.argv[2];
 console.log("Leyendo archivo: " + archivo);
 var tipoImport = process.argv[3];
 console.log("Tipo de import: " + tipoImport);
-if (archivo && tipoImport){
+if (true){
     var array = fs.readFileSync(archivo).toString().split("\n");
     for (var i = 0; i < (array.length -1); i++){
         var campos = array[i].toString().split(",");
